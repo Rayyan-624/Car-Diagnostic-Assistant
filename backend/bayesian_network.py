@@ -146,9 +146,8 @@ class CarDiagnosticNetwork:
         logger.info("Bayesian Network built and validated successfully.")
 
     def _define_cpds(self):
-        """Define all Conditional Probability Distributions."""
 
-        # ── Root / fault priors ───────────────────────────────────────────────
+    # Root priors
         self.model.add_cpds(TabularCPD('battery_dead',        2, [[0.92], [0.08]]))
         self.model.add_cpds(TabularCPD('starter_motor_issue', 2, [[0.95], [0.05]]))
         self.model.add_cpds(TabularCPD('fuel_pump_failure',   2, [[0.94], [0.06]]))
@@ -156,8 +155,7 @@ class CarDiagnosticNetwork:
         self.model.add_cpds(TabularCPD('spark_plugs_fouled',  2, [[0.90], [0.10]]))
         self.model.add_cpds(TabularCPD('head_gasket_failure', 2, [[0.97], [0.03]]))
 
-        # ── engine_misfire (child of spark_plugs_fouled) ──────────────────────
-        # P(misfire | plugs_ok)=0.11, P(misfire | plugs_fouled)=0.70
+        # engine_misfire
         self.model.add_cpds(TabularCPD(
             'engine_misfire', 2,
             [[0.89, 0.30],
@@ -165,8 +163,7 @@ class CarDiagnosticNetwork:
             evidence=['spark_plugs_fouled'], evidence_card=[2]
         ))
 
-        # ── engine_not_starting (3 parents: battery, starter, fuel) ──────────
-        # Cols indexed [battery=0,starter=0,fuel=0], [battery=0,starter=0,fuel=1], ...
+        # engine_not_starting
         self.model.add_cpds(TabularCPD(
             'engine_not_starting', 2,
             [[0.99, 0.20, 0.10, 0.05, 0.10, 0.01, 0.01, 0.001],
@@ -175,71 +172,73 @@ class CarDiagnosticNetwork:
             evidence_card=[2, 2, 2]
         ))
 
-        # ── 1-parent symptom CPDs ─────────────────────────────────────────────
+        # 1-parent
         self.model.add_cpds(TabularCPD(
             'battery_warning_light', 2,
             [[0.98, 0.10], [0.02, 0.90]],
             evidence=['battery_dead'], evidence_card=[2]
         ))
+
         self.model.add_cpds(TabularCPD(
             'dim_headlights', 2,
             [[0.98, 0.15], [0.02, 0.85]],
             evidence=['battery_dead'], evidence_card=[2]
         ))
+
         self.model.add_cpds(TabularCPD(
             'warning_lights_all', 2,
             [[0.99, 0.30], [0.01, 0.70]],
             evidence=['head_gasket_failure'], evidence_card=[2]
         ))
+
         self.model.add_cpds(TabularCPD(
             'white_smoke', 2,
             [[0.99, 0.20], [0.01, 0.80]],
             evidence=['head_gasket_failure'], evidence_card=[2]
         ))
+
         self.model.add_cpds(TabularCPD(
             'excessive_vibration', 2,
             [[0.98, 0.25], [0.02, 0.75]],
             evidence=['engine_misfire'], evidence_card=[2]
         ))
 
-        # ── 2-parent symptom CPDs ─────────────────────────────────────────────
+        # 2-parent
         self.model.add_cpds(TabularCPD(
             'clicking_sound', 2,
             [[0.97, 0.20, 0.05, 0.01],
              [0.03, 0.80, 0.95, 0.99]],
             evidence=['battery_dead', 'starter_motor_issue'],
             evidence_card=[2, 2]
-        ))
+    ))
 
-        # ── 3-parent symptom CPDs ─────────────────────────────────────────────
-        self.model.add_cpds(TabularCPD(
-            'engine_stalling', 2,
-            [[0.98, 0.25, 0.15, 0.08, 0.10, 0.05, 0.03, 0.01],
-             [0.02, 0.75, 0.85, 0.92, 0.90, 0.95, 0.97, 0.99]],
-            evidence=['fuel_pump_failure', 'ignition_coil_issue', 'head_gasket_failure'],
-            evidence_card=[2, 2, 2]
-        ))
-        self.model.add_cpds(TabularCPD(
-            'check_engine_light', 2,
-            [[0.98, 0.15, 0.10, 0.05, 0.08, 0.03, 0.02, 0.01],
-             [0.02, 0.85, 0.90, 0.95, 0.92, 0.97, 0.98, 0.99]],
-            evidence=['ignition_coil_issue', 'spark_plugs_fouled', 'engine_misfire'],
-            evidence_card=[2, 2, 2]
-        ))
+    # 3-parent
+    self.model.add_cpds(TabularCPD(
+        'engine_stalling', 2,
+        [[0.98, 0.25, 0.15, 0.08, 0.10, 0.05, 0.03, 0.01],
+         [0.02, 0.75, 0.85, 0.92, 0.90, 0.95, 0.97, 0.99]],
+        evidence=['fuel_pump_failure', 'ignition_coil_issue', 'head_gasket_failure'],
+        evidence_card=[2, 2, 2]
+    ))
 
-        # ── 4-parent symptom CPDs ─────────────────────────────────────────────
-        self.model.add_cpds(TabularCPD(
-            'rough_idle', 2,
-            [
-                [0.97, 0.20, 0.15, 0.08, 0.10, 0.05, 0.03, 0.02,
-                 0.08, 0.03, 0.02, 0.01, 0.05, 0.02, 0.01, 0.001],
-                [0.03, 0.80, 0.85, 0.92, 0.90, 0.95, 0.97, 0.98,
-                 0.92, 0.97, 0.98, 0.99, 0.95, 0.98, 0.99, 0.999]
-            ],
-            evidence=['fuel_pump_failure', 'ignition_coil_issue',
-                      'spark_plugs_fouled', 'engine_misfire'],
-            evidence_card=[2, 2, 2, 2]
-        ))
+    self.model.add_cpds(TabularCPD(
+        'check_engine_light', 2,
+        [[0.98, 0.15, 0.10, 0.05, 0.08, 0.03, 0.02, 0.01],
+         [0.02, 0.85, 0.90, 0.95, 0.92, 0.97, 0.98, 0.99]],
+        evidence=['ignition_coil_issue', 'spark_plugs_fouled', 'engine_misfire'],
+        evidence_card=[2, 2, 2]
+    ))
+
+    # ✅ FIXED rough_idle
+    self.model.add_cpds(TabularCPD(
+        'rough_idle', 2,
+        [
+            [0.97, 0.20, 0.15, 0.08, 0.10, 0.05, 0.03, 0.02],
+            [0.03, 0.80, 0.85, 0.92, 0.90, 0.95, 0.97, 0.98]
+        ],
+        evidence=['fuel_pump_failure', 'ignition_coil_issue', 'engine_misfire'],
+        evidence_card=[2, 2, 2]
+))
 
     # ── Metadata index ────────────────────────────────────────────────────────
 
