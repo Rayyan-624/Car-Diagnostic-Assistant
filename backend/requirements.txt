@@ -1,0 +1,20 @@
+# Smart Car Diagnostic Assistant — Backend Dependencies
+# Install: pip install -r requirements.txt
+# Python:  3.8 or higher
+
+# Web framework
+Flask==2.3.3
+Flask-CORS==4.0.0
+Flask-SQLAlchemy==3.1.1
+
+# AI / Bayesian Network
+# IMPORTANT: pgmpy 0.1.23 is NOT compatible with numpy 2.x.
+# The original requirements.txt had numpy>=2.1.0 which causes crashes.
+# Fixed pin below prevents this breakage.
+pgmpy==0.1.23
+networkx==3.1
+numpy>=1.24.0,<2.0.0
+
+# Utilities
+python-dotenv==1.0.0
+pandas>=1.5.0

@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Car Diagnostic Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07090e;--surface:#0c1018;--card:#111a25;--card-h:#162031;
+  --border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);
+  --amber:#f0a500;--amber-d:#c47e00;--amber-bg:rgba(240,165,0,0.1);
+  --cyan:#38bdf8;--red:#f43f5e;--orange:#fb923c;--green:#34d399;
+  --text:#d6e0ec;--muted:#4e6070;--subtle:#1e2e3f;
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;position:sticky;top:0;z-index:50}
+.hdr-logo{display:flex;align-items:center;gap:10px}
+.hdr-icon{width:30px;height:30px;background:var(--amber);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.hdr-name{font-family:'Rajdhani',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:.06em}
+.hdr-name span{color:var(--amber)}
+.hdr-right{display:flex;align-items:center;gap:6px}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;border:1px solid transparent}
+.pill-amber{background:var(--amber-bg);color:var(--amber);border-color:rgba(240,165,0,.2)}
+.pill-green{background:rgba(52,211,153,.08);color:var(--green);border-color:rgba(52,211,153,.2)}
+.pill-red{background:rgba(244,63,94,.08);color:var(--red);border-color:rgba(244,63,94,.2)}
+.pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+/* MAIN */
+.main{max-width:1200px;margin:0 auto;padding:1.25rem 1.5rem 3rem}
+
+/* NOTICE */
+.notice{background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.18);border-radius:8px;padding:9px 13px;font-size:11.5px;color:#60c7f5;margin-bottom:1.25rem;display:flex;gap:8px;align-items:flex-start}
+code{background:rgba(0,0,0,.25);padding:1px 5px;border-radius:3px;font-family:'Fira Mono',monospace;font-size:10.5px}
+
+/* TAB BAR */
+.tab-bar{display:flex;gap:3px;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:3px;margin-bottom:1.25rem}
+.tab-btn{flex:1;padding:7px 10px;background:none;border:none;border-radius:7px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:500;color:var(--muted);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+.tab-btn:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.tab-btn.active{background:var(--amber);color:#000;font-weight:700}
+.tab-cnt{padding:1px 6px;border-radius:10px;font-size:9.5px;background:rgba(0,0,0,.2);font-weight:700}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* SYM LAYOUT */
+.sym-layout{display:grid;grid-template-columns:1fr 290px;gap:1.25rem}
+.sec-label{font-family:'Rajdhani',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+
+/* SEARCH & FILTERS */
+.search-box{width:100%;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;outline:none;margin-bottom:.75rem;transition:border-color .18s}
+.search-box:focus{border-color:var(--amber)}
+.search-box::placeholder{color:var(--muted)}
+.cat-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.85rem}
+.cat-btn{padding:2px 9px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:10.5px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s}
+.cat-btn:hover,.cat-btn.active{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
+
+/* SYMPTOM GRID */
+.sym-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.sym-card{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:11px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:9px;user-select:none}
+.sym-card:hover{border-color:var(--border-h);background:var(--card-h)}
+.sym-card.sel{border-color:var(--amber);background:var(--amber-bg)}
+.sym-ico{width:32px;height:32px;background:rgba(255,255,255,.04);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.sym-card.sel .sym-ico{background:rgba(240,165,0,.15)}
+.sym-info{flex:1;min-width:0}
+.sym-lbl{font-size:12px;font-weight:600;color:var(--text);line-height:1.2}
+.sym-cat{font-size:10px;color:var(--muted);margin-top:1px}
+.sym-chk{width:15px;height:15px;flex-shrink:0;border:1.5px solid var(--muted);border-radius:4px;transition:all .15s}
+.sym-card.sel .sym-chk{background:var(--amber);border-color:var(--amber);display:flex;align-items:center;justify-content:center}
+.sym-card.sel .sym-chk::after{content:'';display:block;width:4px;height:7px;border:1.5px solid #000;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px)}
+
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:.85rem}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:1rem}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:.85rem}
+.stat-box{background:var(--surface);border-radius:7px;padding:9px;text-align:center}
+.stat-num{font-family:'Rajdhani',sans-serif;font-size:1.65rem;font-weight:700;color:var(--amber);line-height:1}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:2px}
+.btn{width:100%;padding:10px;border-radius:8px;border:none;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .18s}
+.btn-primary{background:var(--amber);color:#000}
+.btn-primary:hover:not(:disabled){background:#f5b800;transform:translateY(-1px);box-shadow:0 5px 18px rgba(240,165,0,.28)}
+.btn-primary:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);margin-top:6px;font-size:.8rem}
+.btn-ghost:hover{color:var(--text);border-color:var(--border-h)}
+
+/* LIVE PROBS MINI */
+.live-panel{max-height:220px;overflow-y:auto}
+.live-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.live-row:last-child{border-bottom:none}
+.live-name{flex:1;font-size:11px;color:var(--muted)}
+.live-bar-wrap{width:70px;height:4px;background:var(--subtle);border-radius:2px;overflow:hidden}
+.live-bar{height:100%;background:var(--amber);border-radius:2px;transition:width .6s cubic-bezier(.16,1,.3,1)}
+.live-pct{font-family:'Fira Mono',monospace;font-size:10.5px;color:var(--amber);min-width:36px;text-align:right}
+
+.formula-box{background:var(--surface);border-radius:6px;padding:8px 10px;font-family:'Fira Mono',monospace;font-size:11px;color:var(--cyan);margin:6px 0}
+.sev-legend{display:flex;flex-direction:column;gap:5px}
+.sev-row{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted)}
+.sev{display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.sev-critical{background:rgba(244,63,94,.12);color:#f43f5e}
+.sev-high{background:rgba(251,146,60,.12);color:#fb923c}
+.sev-medium{background:rgba(251,191,36,.12);color:#fbbf24}
+.sev-low{background:rgba(52,211,153,.12);color:#34d399}
+
+/* NETWORK */
+.net-wrap{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:1.1rem}
+#net-svg-container{border-radius:7px;overflow:hidden;background:var(--surface);width:100%}
+.net-legend{display:flex;gap:18px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.leg-dot{width:9px;height:9px;border-radius:50%}
+
+/* RESULTS */
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:1.1rem}
+.sym-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem}
+.sym-tag{background:var(--amber-bg);border:1px solid rgba(240,165,0,.2);color:var(--amber);padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:500}
+.fault-item{margin-bottom:12px}
+.fault-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.fault-left{display:flex;align-items:center;gap:6px}
+.fault-name{font-size:12.5px;font-weight:600;color:var(--text)}
+.fault-pct{font-family:'Fira Mono',monospace;font-size:12.5px;color:var(--amber)}
+.fault-ci{font-family:'Fira Mono',monospace;font-size:10px;color:var(--muted)}
+.bar-track{height:4px;background:var(--subtle);border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--amber-d),var(--amber));transition:width .9s cubic-bezier(.16,1,.3,1)}
+
+/* RECS */
+.rec-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;overflow:hidden}
+.rec-head{padding:10px 12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background .12s}
+.rec-head:hover{background:rgba(255,255,255,.03)}
+.rec-hl{display:flex;align-items:center;gap:8px}
+.rec-rank{width:20px;height:20px;background:var(--amber-bg);border:1px solid rgba(240,165,0,.22);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Fira Mono',monospace;font-size:9.5px;font-weight:600;color:var(--amber);flex-shrink:0}
+.rec-title{font-size:12px;font-weight:600;color:var(--text)}
+.rec-prob{font-size:10.5px;color:var(--muted);margin-top:1px}
+.rec-chev{color:var(--muted);font-size:9px;transition:transform .18s}
+.rec-item.open .rec-chev{transform:rotate(180deg)}
+.rec-body{display:none;padding:0 12px 10px}
+.rec-item.open .rec-body{display:block}
+.act-list{list-style:none}
+.act-list li{display:flex;gap:7px;font-size:11.5px;color:var(--muted);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.5}
+.act-list li:last-child{border-bottom:none}
+.act-list li::before{content:'→';color:var(--amber);flex-shrink:0}
+
+/* NEXT SYM */
+.next-sym-box{background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.18);border-radius:7px;padding:10px 13px;margin-top:1rem;font-size:12px;color:#5ee4c0}
+
+/* CASES */
+.case-item{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:.9rem 1.1rem;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:1rem;transition:border-color .15s;cursor:default}
+.case-item:hover{border-color:var(--border-h)}
+.case-syms{font-size:11px;color:var(--muted);margin-bottom:2px}
+.case-top{font-size:13px;font-weight:600;color:var(--text)}
+.case-pct{font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:700;color:var(--amber);white-space:nowrap}
+.case-time{font-family:'Fira Mono',monospace;font-size:9.5px;color:var(--subtle)}
+.case-confirmed{font-size:10px;color:var(--green);margin-top:2px}
+
+/* EMPTY */
+.empty{text-align:center;padding:3.5rem 2rem;color:var(--muted)}
+.empty-ico{font-size:2rem;margin-bottom:.6rem}
+.empty h3{font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:600;letter-spacing:.04em;color:var(--muted);margin-bottom:.35rem}
+.empty p{font-size:12px}
+
+/* LOADER */
+.loader{display:none;position:fixed;inset:0;background:rgba(7,9,14,.85);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.loader.show{display:flex}
+.spinner{width:34px;height:34px;border:2px solid rgba(240,165,0,.15);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-txt{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.25rem;right:1.25rem;background:var(--card);border:1px solid var(--amber);border-radius:8px;padding:10px 14px;font-size:12.5px;color:var(--text);display:flex;align-items:center;gap:7px;z-index:300;transform:translateY(130%);transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
+.toast.show{transform:translateY(0)}
+
+@media(max-width:800px){.sym-layout,.res-grid{grid-template-columns:1fr}.tab-btn span.lbl{display:none}}
+@media print{.hdr,.tab-bar,.btn,.toast,.loader,.notice{display:none!important}.tab-pane{display:block!important}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-logo">
+    <div class="hdr-icon">🚗</div>
+    <div class="hdr-name">SMART<span>DIAG</span></div>
+  </div>
+  <div class="hdr-right">
+    <span class="pill pill-green" id="api-badge"><span class="pill-dot"></span><span id="api-label">Connecting...</span></span>
+    <span class="pill pill-amber">Bayesian AI</span>
+  </div>
+</header>
+
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="spinner"></div>
+  <div class="loader-txt" id="loader-txt">Running Bayesian Inference…</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<main class="main">
+
+  <div class="notice">
+    ℹ️ <span>
+      Ensure the Flask backend is running: <code>cd backend &amp;&amp; python app.py</code>.
+      The app uses the API for all inference — this ensures the pgmpy Bayesian Network
+      (not a JS approximation) computes every diagnosis. If the API is offline, a
+      lighter JS fallback activates automatically.
+    </span>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="symptoms" onclick="switchTab(this)">📋 <span class="lbl">Symptoms</span> <span class="tab-cnt" id="tc-sym">0</span></button>
+    <button class="tab-btn" data-tab="network"  onclick="switchTab(this)">🔗 <span class="lbl">Network</span></button>
+    <button class="tab-btn" data-tab="results"  onclick="switchTab(this)">📊 <span class="lbl">Results</span></button>
+    <button class="tab-btn" data-tab="cases"    onclick="switchTab(this)">🕐 <span class="lbl">History</span> <span class="tab-cnt" id="tc-cases">0</span></button>
+  </div>
+
+  <!-- ── SYMPTOMS PANE ─────────────────────────── -->
+  <div class="tab-pane active" id="pane-symptoms">
+    <div class="sym-layout">
+
+      <div>
+        <div class="sec-label">Select symptoms your vehicle is experiencing</div>
+        <input class="search-box" id="search" type="text" placeholder="🔍  Search symptoms…" oninput="filterSyms(this.value)">
+        <div class="cat-row" id="cat-row"></div>
+        <div class="sym-grid" id="sym-grid"></div>
+      </div>
+
+      <div class="sidebar">
+        <div class="panel">
+          <div class="sec-label">Diagnosis status</div>
+          <div class="stat-row">
+            <div class="stat-box"><div class="stat-num" id="s-sel">0</div><div class="stat-lbl">Selected</div></div>
+            <div class="stat-box"><div class="stat-num" id="s-runs">0</div><div class="stat-lbl">Diagnoses</div></div>
+          </div>
+          <button class="btn btn-primary" id="diag-btn" onclick="runDiagnosis()" disabled>⚡ Run Diagnosis</button>
+          <button class="btn btn-ghost" onclick="resetAll()">↺ Reset all</button>
+        </div>
+
+        <div class="panel">
+          <div class="sec-label">Live probabilities <span style="font-size:9px;color:var(--muted)">(updates as you select)</span></div>
+          <div class="live-panel" id="live-probs"></div>
+        </div>
+
+        <div class="panel">
+          <div class="sec-label">Bayesian formula</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-bottom:6px;line-height:1.6">Posterior probability of each fault given observed symptoms:</div>
+          <div class="formula-box">P(F|S) ∝ P(F) × ∏ P(Sᵢ|F)</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:7px;line-height:1.6">Variable Elimination on pgmpy DAG. Softmax over log-likelihoods used in JS fallback mode.</div>
+        </div>
+
+        <div class="panel">
+          <div class="sec-label">Severity guide</div>
+          <div class="sev-legend">
+            <div class="sev-row"><span class="sev sev-critical">Critical</span> Stop driving immediately</div>
+            <div class="sev-row"><span class="sev sev-high">High</span> Repair as soon as possible</div>
+            <div class="sev-row"><span class="sev sev-medium">Medium</span> Schedule a service</div>
+            <div class="sev-row"><span class="sev sev-low">Low</span> Monitor the situation</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── NETWORK PANE ──────────────────────────── -->
+  <div class="tab-pane" id="pane-network">
+    <div class="net-wrap">
+      <div class="sec-label" style="margin-bottom:.85rem">Bayesian network — causal structure (drag nodes to explore)</div>
+      <div id="net-svg-container" style="height:460px"></div>
+      <div class="net-legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#f0a500"></div>Fault node (hidden)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#38bdf8"></div>Symptom node (observable)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#f43f5e"></div>Active symptom</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#34d399"></div>Top diagnosed fault</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#888"></div>Causal edge (fault → symptom)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RESULTS PANE ─────────────────────────── -->
+  <div class="tab-pane" id="pane-results">
+    <div class="empty" id="res-empty">
+      <div class="empty-ico">🔍</div>
+      <h3>No diagnosis yet</h3>
+      <p>Select symptoms and click Run Diagnosis.</p>
+    </div>
+    <div id="res-content" style="display:none">
+      <div class="res-grid">
+        <div class="card" style="animation:fadeUp .28s ease">
+          <div class="sec-label">Observed symptoms</div>
+          <div class="sym-tags" id="res-tags"></div>
+          <div class="sec-label">Fault probabilities</div>
+          <div id="fault-bars"></div>
+          <div id="next-sym-box"></div>
+        </div>
+        <div class="card" style="animation:fadeUp .28s ease .05s;animation-fill-mode:both">
+          <div class="sec-label">Recommended actions</div>
+          <div id="recs"></div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:1rem">
+        <button onclick="window.print()" style="background:var(--card);border:1px solid var(--border);color:var(--muted);padding:7px 16px;border-radius:7px;cursor:pointer;font-size:12px;font-family:inherit;transition:color .15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">📄 Print / Export report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CASES PANE ────────────────────────────── -->
+  <div class="tab-pane" id="pane-cases">
+    <div class="empty" id="cases-empty"><div class="empty-ico">🕐</div><h3>No history yet</h3><p>Completed diagnoses appear here.</p></div>
+    <div id="cases-list"></div>
+  </div>
+
+</main>
+
+<style>
+@keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
+<!-- D3 v7 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+
+<script>
+// ════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════
+const API = 'http://localhost:5000/api';
+let apiOnline = false;
+
+// ════════════════════════════════════════════════════════
+// DATA  (JS fallback inference only — API is primary)
+// engine_misfire is now a SYMPTOM, not a fault
+// ════════════════════════════════════════════════════════
+const FAULTS = {
+  battery_dead:        {label:'Battery Dead',         prior:.08, sev:'high',
+    ll:{engine_not_starting:.90,battery_warning_light:.92,clicking_sound:.72,dim_headlights:.85,warning_lights_all:.05,engine_stalling:.05,rough_idle:.03,check_engine_light:.10,white_smoke:.01,excessive_vibration:.02,engine_misfire:.04}},
+  starter_motor_issue: {label:'Starter Motor Issue',  prior:.05, sev:'high',
+    ll:{engine_not_starting:.85,battery_warning_light:.05,clicking_sound:.90,dim_headlights:.03,warning_lights_all:.05,engine_stalling:.02,rough_idle:.02,check_engine_light:.08,white_smoke:.01,excessive_vibration:.05,engine_misfire:.06}},
+  fuel_pump_failure:   {label:'Fuel Pump Failure',    prior:.06, sev:'high',
+    ll:{engine_not_starting:.70,battery_warning_light:.01,clicking_sound:.05,dim_headlights:.01,warning_lights_all:.15,engine_stalling:.85,rough_idle:.60,check_engine_light:.65,white_smoke:.03,excessive_vibration:.10,engine_misfire:.30}},
+  ignition_coil_issue: {label:'Ignition Coil Issue',  prior:.07, sev:'medium',
+    ll:{engine_not_starting:.50,battery_warning_light:.02,clicking_sound:.03,dim_headlights:.01,warning_lights_all:.25,engine_stalling:.75,rough_idle:.80,check_engine_light:.88,white_smoke:.05,excessive_vibration:.35,engine_misfire:.55}},
+  spark_plugs_fouled:  {label:'Spark Plugs Fouled',   prior:.10, sev:'medium',
+    ll:{engine_not_starting:.30,battery_warning_light:.01,clicking_sound:.01,dim_headlights:.01,warning_lights_all:.10,engine_stalling:.45,rough_idle:.85,check_engine_light:.82,white_smoke:.08,excessive_vibration:.65,engine_misfire:.70}},
+  head_gasket_failure: {label:'Head Gasket Failure',  prior:.03, sev:'critical',
+    ll:{engine_not_starting:.20,battery_warning_light:.01,clicking_sound:.01,dim_headlights:.01,warning_lights_all:.70,engine_stalling:.65,rough_idle:.50,check_engine_light:.72,white_smoke:.92,excessive_vibration:.25,engine_misfire:.15}},
+};
+
+const SYMPTOMS = {
+  engine_not_starting:   {label:'Engine Not Starting',      icon:'🔑', cat:'Starting'},
+  battery_warning_light: {label:'Battery Warning Light',    icon:'🔋', cat:'Electrical'},
+  clicking_sound:        {label:'Clicking Sound on Start',  icon:'🔊', cat:'Starting'},
+  dim_headlights:        {label:'Dim Headlights',           icon:'💡', cat:'Electrical'},
+  warning_lights_all:    {label:'All Warning Lights On',    icon:'⚠️', cat:'Electrical'},
+  engine_stalling:       {label:'Engine Stalling',          icon:'🛑', cat:'Running'},
+  rough_idle:            {label:'Rough Idle',               icon:'〰️', cat:'Running'},
+  check_engine_light:    {label:'Check Engine Light',       icon:'🔍', cat:'Electrical'},
+  white_smoke:           {label:'White Smoke (Exhaust)',    icon:'💨', cat:'Exhaust'},
+  excessive_vibration:   {label:'Excessive Vibration',      icon:'📳', cat:'Running'},
+  engine_misfire:        {label:'Engine Misfiring',         icon:'⚡', cat:'Running'},  // MOVED FROM FAULTS
+};
+
+const FAULT_ACTIONS = {
+  battery_dead:['Charge battery with charger (2–6 hrs)','Inspect terminals for corrosion; clean with baking soda','Test voltage: < 12.4V = weak; < 12V = replace','Test alternator output (should be 13.5–14.5V at idle)','Check for parasitic drain (> 50mA is a problem)'],
+  starter_motor_issue:['Verify battery voltage > 12.4V first','Single clunk = solenoid; rapid clicks = battery','Tap starter body with rubber mallet (temp fix)','Have starter tested on a test bench','Inspect starter wiring and solenoid connections'],
+  fuel_pump_failure:['Listen for 2-sec hum from fuel tank on key-ON','Test fuel pressure (normal: 40–60 PSI)','Replace fuel filter first — cheaper diagnostic step','Check fuel pump fuse and relay in fuse box','Pump assembly replacement required if test fails'],
+  ignition_coil_issue:['Scan OBD-II: P030X codes identify bad cylinders','Measure primary (0.4–2Ω) & secondary (6–15kΩ) resistance','Swap coils between cylinders to confirm fault','Inspect HT leads and rubber boots for cracks','Replace confirmed faulty coil packs individually'],
+  spark_plugs_fouled:['Remove and inspect: black=rich; white=lean; oily=rings','Verify electrode gap vs manufacturer spec','Replace all plugs as a set after 30,000 km (std) / 100,000 km (iridium)','Investigate root cause of fouling to prevent recurrence','Check fuel-air ratio via OBD live data'],
+  head_gasket_failure:['⛔ STOP DRIVING — continued operation destroys engine','Check oil cap for white frothy residue (coolant mixing)','Inspect coolant for oil contamination (brownish film)','Sweet-smelling white exhaust smoke = coolant burning','Professional repair required — do not delay'],
+};
+
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+let selected   = new Set();
+let lastResult = null;
+let diagCount  = 0;
+let activeCat  = 'All';
+let debTimer   = null;
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  buildCats();
+  renderSymGrid(Object.keys(SYMPTOMS));
+  renderLiveProbs({});
+  checkApi();
+});
+
+// ════════════════════════════════════════════════════════
+// API HEALTH CHECK
+// ════════════════════════════════════════════════════════
+async function checkApi() {
+  try {
+    const r = await fetch(`${API}/health`, {signal: AbortSignal.timeout(3000)});
+    const d = await r.json();
+    apiOnline = d.network_ready === true;
+  } catch { apiOnline = false; }
+  updateApiBadge();
+}
+
+function updateApiBadge() {
+  const badge = document.getElementById('api-badge');
+  const lbl   = document.getElementById('api-label');
+  badge.className = 'pill ' + (apiOnline ? 'pill-green' : 'pill-red');
+  lbl.textContent = apiOnline ? 'API Online' : 'JS Fallback';
+}
+
+// ════════════════════════════════════════════════════════
+// CATEGORY FILTERS
+// ════════════════════════════════════════════════════════
+function buildCats() {
+  const cats = ['All', ...new Set(Object.values(SYMPTOMS).map(s => s.cat))];
+  document.getElementById('cat-row').innerHTML = cats.map(c =>
+    `<button class="cat-btn ${c==='All'?'active':''}" onclick="setCat('${c}',this)">${c}</button>`
+  ).join('');
+}
+function setCat(cat, btn) {
+  activeCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterSyms(document.getElementById('search').value);
+}
+function filterSyms(q) {
+  const lq  = q.toLowerCase();
+  const ids = Object.keys(SYMPTOMS).filter(id => {
+    const s = SYMPTOMS[id];
+    return (s.label.toLowerCase().includes(lq) || s.cat.toLowerCase().includes(lq))
+        && (activeCat==='All' || s.cat===activeCat);
+  });
+  renderSymGrid(ids);
+}
+
+// ════════════════════════════════════════════════════════
+// SYMPTOM GRID
+// ════════════════════════════════════════════════════════
+function renderSymGrid(ids) {
+  document.getElementById('sym-grid').innerHTML = ids.map(id => {
+    const s  = SYMPTOMS[id];
+    const on = selected.has(id);
+    return `<div class="sym-card ${on?'sel':''}" id="sc-${id}" onclick="toggleSym('${id}')">
+      <div class="sym-ico">${s.icon}</div>
+      <div class="sym-info"><div class="sym-lbl">${s.label}</div><div class="sym-cat">${s.cat}</div></div>
+      <div class="sym-chk"></div>
+    </div>`;
+  }).join('');
+}
+
+function toggleSym(id) {
+  selected.has(id) ? selected.delete(id) : selected.add(id);
+  const c = document.getElementById(`sc-${id}`);
+  if (c) c.classList.toggle('sel', selected.has(id));
+  const n = selected.size;
+  document.getElementById('s-sel').textContent  = n;
+  document.getElementById('tc-sym').textContent = n;
+  document.getElementById('diag-btn').disabled  = n === 0;
+  // Debounced live inference
+  clearTimeout(debTimer);
+  debTimer = setTimeout(runLiveInference, 450);
+  if (document.getElementById('pane-network').classList.contains('active')) updateNetColors();
+}
+
+// ════════════════════════════════════════════════════════
+// LIVE INFERENCE (debounced, lightweight JS-only for sidebar)
+// ════════════════════════════════════════════════════════
+function jsFallbackInfer(symIds) {
+  if (!symIds.length) return {};
+  const logScores = {};
+  for (const [fid, f] of Object.entries(FAULTS)) {
+    let s = Math.log(f.prior);
+    for (const sid of symIds) s += Math.log((f.ll[sid] || 0.01));
+    logScores[fid] = s;
+  }
+  const maxS   = Math.max(...Object.values(logScores));
+  let sumExp = 0;
+  const exp  = {};
+  for (const [fid, s] of Object.entries(logScores)) { exp[fid] = Math.exp(s-maxS); sumExp += exp[fid]; }
+  const out = {};
+  for (const [fid, e] of Object.entries(exp)) out[fid] = e / sumExp;
+  return out;
+}
+
+function runLiveInference() {
+  const ids   = [...selected];
+  const probs = jsFallbackInfer(ids);
+  renderLiveProbs(probs);
+  if (document.getElementById('pane-network').classList.contains('active')) updateNetColors();
+}
+
+function renderLiveProbs(probs) {
+  const sorted = Object.entries(FAULTS).sort((a,b) => (probs[b[0]]||b[1].prior)-(probs[a[0]]||a[1].prior));
+  document.getElementById('live-probs').innerHTML = sorted.map(([fid, f]) => {
+    const p   = probs[fid] !== undefined ? probs[fid] : f.prior;
+    const pct = (p * 100).toFixed(1);
+    return `<div class="live-row">
+      <span class="live-name">${f.label}</span>
+      <div class="live-bar-wrap"><div class="live-bar" style="width:${pct}%"></div></div>
+      <span class="live-pct">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════
+// FULL DIAGNOSIS (API primary, JS fallback)
+// ════════════════════════════════════════════════════════
+async function runDiagnosis() {
+  if (!selected.size) return;
+  setLoader(true, 'Running Bayesian inference…');
+
+  const symObj = {};
+  selected.forEach(s => symObj[s] = 1);
+
+  let probs, recs, nextSym = null;
+
+  if (apiOnline) {
+    try {
+      const [dr, nr] = await Promise.all([
+        fetch(`${API}/diagnose`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({symptoms: symObj})
+        }).then(r => r.json()),
+        fetch(`${API}/next-symptom`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({symptoms: symObj})
+        }).then(r => r.json()).catch(() => null),
+      ]);
+
+      if (!dr.success) throw new Error(dr.error || 'API diagnosis failed');
+      probs   = dr.probabilities;
+      recs    = dr.recommendations;
+      nextSym = nr && nr.success ? nr : null;
+    } catch (e) {
+      showToast('⚠️ API error — using JS fallback');
+      apiOnline = false;
+      updateApiBadge();
+      probs = jsFallbackInfer([...selected]);
+      recs  = buildJsRecs(probs);
+    }
+  } else {
+    probs = jsFallbackInfer([...selected]);
+    recs  = buildJsRecs(probs);
+  }
+
+  const sorted = Object.entries(probs).sort((a,b) => b[1]-a[1]);
+  lastResult   = {sorted, symIds: [...selected], probs, recs, nextSym};
+  diagCount++;
+
+  setLoader(false);
+  renderResults(lastResult);
+  saveLocalHistory(lastResult);
+  switchTabById('results');
+  showToast(`✓ Diagnosis complete — ${sorted.length} faults evaluated`);
+}
+
+function buildJsRecs(probs) {
+  return Object.entries(probs)
+    .sort((a,b) => b[1]-a[1])
+    .map(([fid, prob]) => ({
+      fault:       fid,
+      title:       FAULTS[fid].label,
+      severity:    FAULTS[fid].sev,
+      probability: prob,
+      actions:     FAULT_ACTIONS[fid] || [],
+    }));
+}
+
+// ════════════════════════════════════════════════════════
+// RENDER RESULTS
+// ════════════════════════════════════════════════════════
+function renderResults({sorted, symIds, probs, recs, nextSym}) {
+  document.getElementById('res-empty').style.display   = 'none';
+  document.getElementById('res-content').style.display = 'block';
+  document.getElementById('s-runs').textContent        = diagCount;
+
+  // Symptom tags
+  document.getElementById('res-tags').innerHTML =
+    symIds.map(id => `<span class="sym-tag">${SYMPTOMS[id]?.icon||''} ${SYMPTOMS[id]?.label||id}</span>`).join('');
+
+  // Fault bars
+  document.getElementById('fault-bars').innerHTML = sorted.map(([fid, prob]) => {
+    const f   = FAULTS[fid];
+    const pct = (prob*100).toFixed(1);
+    const sev = f?.sev || 'medium';
+    return `<div class="fault-item">
+      <div class="fault-row">
+        <div class="fault-left">
+          <span class="fault-name">${f?.label||fid}</span>
+          <span class="sev sev-${sev}">${sev}</span>
+        </div>
+        <span class="fault-pct">${pct}%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:0%" data-w="${pct}"></div></div>
+    </div>`;
+  }).join('');
+
+  // Animate bars
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.bar-fill').forEach(el => { el.style.width = el.dataset.w + '%'; });
+  });
+
+  // Next best symptom (differential diagnosis)
+  const nsBox = document.getElementById('next-sym-box');
+  if (nextSym && nextSym.next_symptom_id) {
+    nsBox.innerHTML = `<div class="next-sym-box">
+      <strong style="color:#34d399">Next: check for</strong> "${nextSym.next_symptom_label}"
+      <br><span style="font-size:10.5px;opacity:.7">This symptom would most change certainty about <em>${sorted[0][0].replace(/_/g,' ')}</em> (expected gain: ${(nextSym.information_gain*100).toFixed(1)}%)</span>
+    </div>`;
+  } else { nsBox.innerHTML = ''; }
+
+  // Recommendations
+  document.getElementById('recs').innerHTML = recs.slice(0,6).map((r,i) => `
+    <div class="rec-item ${i===0?'open':''}">
+      <div class="rec-head" onclick="this.parentElement.classList.toggle('open')">
+        <div class="rec-hl">
+          <div class="rec-rank">${i+1}</div>
+          <div>
+            <div class="rec-title">${r.title} <span class="sev sev-${r.severity}">${r.severity}</span></div>
+            <div class="rec-prob">${(r.probability*100).toFixed(1)}% probability</div>
+          </div>
+        </div>
+        <div class="rec-chev">▼</div>
+      </div>
+      <div class="rec-body">
+        <ul class="act-list">
+          ${(r.actions||[]).map(a=>`<li>${a}</li>`).join('')}
+        </ul>
+      </div>
+    </div>`).join('');
+
+  // Update network if visible
+  updateNetColors();
+}
+
+// ════════════════════════════════════════════════════════
+// D3 FORCE NETWORK
+// ════════════════════════════════════════════════════════
+let netSim, netNodeSel, netLinkSel;
+
+function initNetwork() {
+  const container = document.getElementById('net-svg-container');
+  const W = container.offsetWidth || 700;
+  const H = 460;
+
+  d3.select('#net-svg-container svg').remove();
+
+  const svg = d3.select('#net-svg-container')
+    .append('svg')
+    .attr('width','100%')
+    .attr('height', H);
+
+  const g = svg.append('g');
+
+  svg.call(d3.zoom()
+    .scaleExtent([0.35, 3.5])
+    .on('zoom', e => g.attr('transform', e.transform)));
+
+  // Build nodes
+  const nodes = [];
+  for (const [id, f] of Object.entries(FAULTS))
+    nodes.push({id, type:'fault', label:f.label, r:18});
+  for (const [id, s] of Object.entries(SYMPTOMS))
+    nodes.push({id, type:'symptom', label:s.label, r:11});
+
+  // Build links (strong causal connections only)
+  const links = [];
+  for (const [fid, f] of Object.entries(FAULTS))
+    for (const [sid, p] of Object.entries(f.ll))
+      if (p >= 0.55) links.push({source:fid, target:sid, w:p});
+
+  netSim = d3.forceSimulation(nodes)
+    .force('link',      d3.forceLink(links).id(d=>d.id).distance(105).strength(0.28))
+    .force('charge',    d3.forceManyBody().strength(-260))
+    .force('center',    d3.forceCenter(W/2, H/2))
+    .force('collision', d3.forceCollide().radius(d=>d.r+10));
+
+  // Links
+  netLinkSel = g.append('g')
+    .selectAll('line')
+    .data(links)
+    .join('line')
+    .attr('stroke','rgba(255,255,255,0.1)')
+    .attr('stroke-width', d => Math.max(0.6, d.w*1.8));
+
+  // Nodes
+  netNodeSel = g.append('g')
+    .selectAll('g')
+    .data(nodes)
+    .join('g')
+    .style('cursor','pointer')
+    .call(d3.drag()
+      .on('start', (e,d) => { if(!e.active) netSim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
+      .on('drag',  (e,d) => { d.fx=e.x; d.fy=e.y; })
+      .on('end',   (e,d) => { if(!e.active) netSim.alphaTarget(0); d.fx=null; d.fy=null; })
+    );
+
+  netNodeSel.append('circle')
+    .attr('r', d => d.r)
+    .attr('fill',         d => d.type==='fault' ? 'rgba(240,165,0,0.12)' : 'rgba(56,189,248,0.07)')
+    .attr('stroke',       d => d.type==='fault' ? '#f0a500' : '#38bdf8')
+    .attr('stroke-width', 1.5);
+
+  netNodeSel.append('text')
+    .attr('text-anchor','middle')
+    .attr('dy', d => d.r + 12)
+    .attr('font-size','9px')
+    .attr('fill','rgba(120,140,160,0.85)')
+    .attr('font-family','Plus Jakarta Sans, sans-serif')
+    .text(d => {
+      const words = d.label.split(' ');
+      return words.slice(0, 2).join(' ') + (words.length > 2 ? '…' : '');
+    });
+
+  netSim.on('tick', () => {
+    netLinkSel
+      .attr('x1', d=>d.source.x).attr('y1', d=>d.source.y)
+      .attr('x2', d=>d.target.x).attr('y2', d=>d.target.y);
+    netNodeSel.attr('transform', d=>`translate(${d.x},${d.y})`);
+  });
+}
+
+function updateNetColors() {
+  if (!netNodeSel) return;
+  const topFault = lastResult ? lastResult.sorted[0]?.[0] : null;
+  netNodeSel.select('circle')
+    .transition().duration(300)
+    .attr('fill', d => {
+      if (selected.has(d.id)) return 'rgba(244,63,94,0.22)';
+      if (d.id === topFault)  return 'rgba(52,211,153,0.2)';
+      return d.type==='fault' ? 'rgba(240,165,0,0.12)' : 'rgba(56,189,248,0.07)';
+    })
+    .attr('stroke', d => {
+      if (selected.has(d.id)) return '#f43f5e';
+      if (d.id === topFault)  return '#34d399';
+      return d.type==='fault' ? '#f0a500' : '#38bdf8';
+    })
+    .attr('stroke-width', d => (selected.has(d.id) || d.id===topFault) ? 2.5 : 1.5);
+}
+
+// ════════════════════════════════════════════════════════
+// HISTORY (localStorage + API)
+// ════════════════════════════════════════════════════════
+let localHistory = JSON.parse(localStorage.getItem('diag_hist') || '[]');
+
+function saveLocalHistory({sorted, symIds}) {
+  const entry = {
+    t:        new Date().toLocaleTimeString(),
+    symptoms: symIds.map(s => SYMPTOMS[s]?.label || s).join(', '),
+    topFault: FAULTS[sorted[0][0]]?.label || sorted[0][0],
+    topSev:   FAULTS[sorted[0][0]]?.sev || 'medium',
+    topProb:  sorted[0][1],
+  };
+  localHistory.unshift(entry);
+  if (localHistory.length > 20) localHistory.pop();
+  localStorage.setItem('diag_hist', JSON.stringify(localHistory));
+  document.getElementById('tc-cases').textContent = localHistory.length;
+}
+
+async function loadCasesPane() {
+  const listEl   = document.getElementById('cases-list');
+  const emptyEl  = document.getElementById('cases-empty');
+
+  // Try API first for persistent cases
+  let apiCases = [];
+  if (apiOnline) {
+    try {
+      const r = await fetch(`${API}/cases?limit=30`);
+      const d = await r.json();
+      if (d.success) apiCases = d.cases;
+    } catch {}
+  }
+
+  // Merge local history (fallback)
+  const items = apiCases.length ? apiCases : localHistory;
+
+  if (!items.length) {
+    emptyEl.style.display = 'block';
+    listEl.innerHTML      = '';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  document.getElementById('tc-cases').textContent = items.length;
+
+  if (apiCases.length) {
+    // API format
+    listEl.innerHTML = apiCases.map(c => {
+      const syms = Array.isArray(c.symptoms) ? c.symptoms : [];
+      const pct  = ((c.top_probability||0)*100).toFixed(0);
+      return `<div class="case-item">
+        <div>
+          <div class="case-syms">${syms.join(' · ') || 'No symptoms recorded'}</div>
+          <div class="case-top">${(c.top_fault||'').replace(/_/g,' ')} <span class="sev sev-${c.top_severity||'medium'}">${c.top_severity||'medium'}</span></div>
+          ${c.confirmed_fault ? `<div class="case-confirmed">✓ Confirmed: ${c.confirmed_fault.replace(/_/g,' ')}</div>` : ''}
+        </div>
+        <div style="text-align:right">
+          <div class="case-pct">${pct}%</div>
+          <div class="case-time">${c.timestamp||''}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } else {
+    // Local history format
+    listEl.innerHTML = localHistory.map(h => `
+      <div class="case-item">
+        <div>
+          <div class="case-syms">${h.symptoms}</div>
+          <div class="case-top">${h.topFault} <span class="sev sev-${h.topSev}">${h.topSev}</span></div>
+        </div>
+        <div style="text-align:right">
+          <div class="case-pct">${(h.topProb*100).toFixed(0)}%</div>
+          <div class="case-time">${h.t}</div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════════
+function switchTab(btn) {
+  switchTabById(btn.dataset.tab, btn);
+}
+function switchTabById(name, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`pane-${name}`).classList.add('active');
+  (btn || document.querySelector(`[data-tab="${name}"]`)).classList.add('active');
+  if (name === 'network') {
+    if (!netSim) initNetwork();
+    else updateNetColors();
+  }
+  if (name === 'cases') loadCasesPane();
+}
+
+// ════════════════════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════════════════════
+function resetAll() {
+  selected.clear();
+  lastResult  = null;
+  renderSymGrid(Object.keys(SYMPTOMS));
+  document.getElementById('search').value = '';
+  document.getElementById('s-sel').textContent  = '0';
+  document.getElementById('tc-sym').textContent = '0';
+  document.getElementById('diag-btn').disabled  = true;
+  document.getElementById('res-empty').style.display   = 'block';
+  document.getElementById('res-content').style.display = 'none';
+  renderLiveProbs({});
+  if (netSim) updateNetColors();
+  switchTabById('symptoms');
+  showToast('↺ Reset complete');
+}
+
+function setLoader(show, txt) {
+  document.getElementById('loader').classList.toggle('show', show);
+  document.getElementById('loader-txt').textContent = txt || '';
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+</script>
+</body>
+</html>

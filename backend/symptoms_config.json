@@ -1,0 +1,167 @@
+{
+  "faults": [
+    {
+      "id": "battery_dead",
+      "label": "Battery Dead",
+      "severity": "high",
+      "prior": 0.08,
+      "actions": [
+        "Charge the battery using a battery charger (2–6 hours)",
+        "Inspect battery terminals for corrosion — clean with baking soda solution",
+        "Test battery voltage: below 12.4V = weak; below 12V = replace",
+        "If battery is over 5 years old, replace it regardless",
+        "Test alternator output — should be 13.5–14.5V at idle",
+        "Check for parasitic drain with a multimeter (over 50mA is a problem)"
+      ]
+    },
+    {
+      "id": "starter_motor_issue",
+      "label": "Starter Motor Issue",
+      "severity": "high",
+      "prior": 0.05,
+      "actions": [
+        "Verify battery voltage is above 12.4V before assuming starter failure",
+        "Single loud clunk = solenoid failure; rapid clicks = battery issue",
+        "Tap the starter motor body with a rubber mallet (temporary fix)",
+        "Have starter tested on a test bench at an auto parts store",
+        "Inspect wiring and connections to the starter solenoid",
+        "Starter motor replacement typically required if testing confirms failure"
+      ]
+    },
+    {
+      "id": "fuel_pump_failure",
+      "label": "Fuel Pump Failure",
+      "severity": "high",
+      "prior": 0.06,
+      "actions": [
+        "Turn key to ON (not Start) and listen for a 2-second hum from the fuel tank",
+        "Test fuel pressure — normal range is 40–60 PSI for fuel-injected engines",
+        "Replace the fuel filter first — it may be causing the pump to overwork",
+        "Check the fuel pump fuse and relay in the fuse box",
+        "Ensure the fuel tank is not nearly empty (gauge accuracy issues)",
+        "Fuel pump assembly replacement required if pressure test confirms failure"
+      ]
+    },
+    {
+      "id": "ignition_coil_issue",
+      "label": "Ignition Coil Issue",
+      "severity": "medium",
+      "prior": 0.07,
+      "actions": [
+        "Connect OBD-II scanner — P030X codes identify specific affected cylinders",
+        "Measure primary resistance (0.4–2 Ohm) and secondary resistance (6–15 kOhm)",
+        "Swap coils between cylinders — if the misfire moves, the coil is faulty",
+        "Inspect high-tension leads and rubber boots for cracks or carbon tracking",
+        "Clean engine connectors and check for moisture ingress",
+        "Replace individual coil packs as confirmed by testing"
+      ]
+    },
+    {
+      "id": "spark_plugs_fouled",
+      "label": "Spark Plugs Fouled",
+      "severity": "medium",
+      "prior": 0.10,
+      "actions": [
+        "Remove and visually inspect each plug — black soot, white deposits, or oil fouling",
+        "Measure electrode gap and compare to manufacturer specification",
+        "Replace all plugs as a set if mileage exceeds 30,000 km (standard) or 100,000 km (iridium)",
+        "Investigate root cause — oil burning suggests worn rings; white deposits suggest coolant leak",
+        "Check fuel-air mixture ratio via OBD live data",
+        "Verify correct plug heat range for the engine"
+      ]
+    },
+    {
+      "id": "head_gasket_failure",
+      "label": "Head Gasket Failure",
+      "severity": "critical",
+      "prior": 0.03,
+      "actions": [
+        "STOP DRIVING IMMEDIATELY — continued operation causes catastrophic engine damage",
+        "Inspect the oil filler cap for white frothy residue indicating coolant mixing with oil",
+        "Check the coolant reservoir for oil contamination (brownish oily film)",
+        "Observe exhaust: persistent sweet-smelling white smoke confirms coolant burning",
+        "Perform a compression test — low compression in adjacent cylinders confirms the leak",
+        "Seek immediate professional service — head gasket replacement requires engine disassembly"
+      ]
+    }
+  ],
+  "symptoms": [
+    {
+      "id": "engine_not_starting",
+      "label": "Engine Not Starting",
+      "category": "Starting",
+      "icon": "key",
+      "description": "Engine does not turn over or start when key is turned or button is pressed"
+    },
+    {
+      "id": "battery_warning_light",
+      "label": "Battery Warning Light",
+      "category": "Electrical",
+      "icon": "battery",
+      "description": "Battery warning indicator light is illuminated on the dashboard"
+    },
+    {
+      "id": "clicking_sound",
+      "label": "Clicking Sound on Start",
+      "category": "Starting",
+      "icon": "sound",
+      "description": "Rapid clicking sound heard when attempting to start the engine"
+    },
+    {
+      "id": "dim_headlights",
+      "label": "Dim Headlights",
+      "category": "Electrical",
+      "icon": "light",
+      "description": "Headlights appear noticeably dimmer than usual"
+    },
+    {
+      "id": "warning_lights_all",
+      "label": "All Warning Lights On",
+      "category": "Electrical",
+      "icon": "warning",
+      "description": "Multiple or all dashboard warning lights illuminate simultaneously"
+    },
+    {
+      "id": "engine_stalling",
+      "label": "Engine Stalling",
+      "category": "Running",
+      "icon": "stop",
+      "description": "Engine suddenly cuts out while driving or at idle"
+    },
+    {
+      "id": "rough_idle",
+      "label": "Rough Idle",
+      "category": "Running",
+      "icon": "wave",
+      "description": "Engine shakes or vibrates noticeably when stopped or idling"
+    },
+    {
+      "id": "check_engine_light",
+      "label": "Check Engine Light",
+      "category": "Electrical",
+      "icon": "engine",
+      "description": "Check engine or malfunction indicator light is illuminated"
+    },
+    {
+      "id": "white_smoke",
+      "label": "White Smoke from Exhaust",
+      "category": "Exhaust",
+      "icon": "smoke",
+      "description": "White or grey smoke visible from the exhaust pipe"
+    },
+    {
+      "id": "excessive_vibration",
+      "label": "Excessive Vibration",
+      "category": "Running",
+      "icon": "vibrate",
+      "description": "Strong unusual vibrations felt through the steering wheel or seats"
+    },
+    {
+      "id": "engine_misfire",
+      "label": "Engine Misfiring",
+      "category": "Running",
+      "icon": "spark",
+      "description": "Engine feels jerky, hesitates under acceleration, or OBD confirms misfire code P0300"
+    }
+  ]
+}
