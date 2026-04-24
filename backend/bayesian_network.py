@@ -210,35 +210,39 @@ class CarDiagnosticNetwork:
              [0.03, 0.80, 0.95, 0.99]],
             evidence=['battery_dead', 'starter_motor_issue'],
             evidence_card=[2, 2]
-    ))
+        ))
 
-    # 3-parent
-    self.model.add_cpds(TabularCPD(
-        'engine_stalling', 2,
-        [[0.98, 0.25, 0.15, 0.08, 0.10, 0.05, 0.03, 0.01],
-         [0.02, 0.75, 0.85, 0.92, 0.90, 0.95, 0.97, 0.99]],
-        evidence=['fuel_pump_failure', 'ignition_coil_issue', 'head_gasket_failure'],
-        evidence_card=[2, 2, 2]
-    ))
+        # 3-parent
+        self.model.add_cpds(TabularCPD(
+            'engine_stalling', 2,
+            [[0.98, 0.25, 0.15, 0.08, 0.10, 0.05, 0.03, 0.01],
+             [0.02, 0.75, 0.85, 0.92, 0.90, 0.95, 0.97, 0.99]],
+            evidence=['fuel_pump_failure', 'ignition_coil_issue', 'head_gasket_failure'],
+            evidence_card=[2, 2, 2]
+        ))
 
-    self.model.add_cpds(TabularCPD(
-        'check_engine_light', 2,
-        [[0.98, 0.15, 0.10, 0.05, 0.08, 0.03, 0.02, 0.01],
-         [0.02, 0.85, 0.90, 0.95, 0.92, 0.97, 0.98, 0.99]],
-        evidence=['ignition_coil_issue', 'spark_plugs_fouled', 'engine_misfire'],
-        evidence_card=[2, 2, 2]
-    ))
+        # check_engine_light parents (from edges): ignition_coil_issue, engine_misfire
+        # spark_plugs_fouled is NOT a direct parent — it connects via engine_misfire
+        # 4 columns = 2^2 (ignition_coil_issue × engine_misfire)
+        # col order: ic=0,em=0 | ic=1,em=0 | ic=0,em=1 | ic=1,em=1
+        self.model.add_cpds(TabularCPD(
+            'check_engine_light', 2,
+            [[0.98, 0.12, 0.10, 0.02],
+             [0.02, 0.88, 0.90, 0.98]],
+            evidence=['ignition_coil_issue', 'engine_misfire'],
+            evidence_card=[2, 2]
+        ))
 
-    # ✅ FIXED rough_idle
-    self.model.add_cpds(TabularCPD(
-        'rough_idle', 2,
-        [
-            [0.97, 0.20, 0.15, 0.08, 0.10, 0.05, 0.03, 0.02],
-            [0.03, 0.80, 0.85, 0.92, 0.90, 0.95, 0.97, 0.98]
-        ],
-        evidence=['fuel_pump_failure', 'ignition_coil_issue', 'engine_misfire'],
-        evidence_card=[2, 2, 2]
-))
+        # ✅ FIXED rough_idle
+        self.model.add_cpds(TabularCPD(
+            'rough_idle', 2,
+            [
+                [0.97, 0.20, 0.15, 0.08, 0.10, 0.05, 0.03, 0.02],
+                [0.03, 0.80, 0.85, 0.92, 0.90, 0.95, 0.97, 0.98]
+            ],
+            evidence=['fuel_pump_failure', 'ignition_coil_issue', 'engine_misfire'],
+            evidence_card=[2, 2, 2]
+        ))
 
     # ── Metadata index ────────────────────────────────────────────────────────
 
